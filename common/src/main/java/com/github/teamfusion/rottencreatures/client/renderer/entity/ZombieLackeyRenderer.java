@@ -5,7 +5,7 @@ import com.github.teamfusion.rottencreatures.client.model.LayerBuilder;
 import com.github.teamfusion.rottencreatures.client.renderer.entity.layers.ZombieLackeyOuterLayer;
 import com.github.teamfusion.rottencreatures.common.entities.ZombieLackey;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import net.minecraft.client.model.DrownedModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.renderer.entity.AbstractZombieRenderer;
@@ -31,6 +31,6 @@ public class ZombieLackeyRenderer extends AbstractZombieRenderer<ZombieLackey, D
     protected void setupRotations(ZombieLackey lackey, PoseStack matrices, float animationProgress, float bodyYaw, float ticksDelta) {
         super.setupRotations(lackey, matrices, animationProgress, bodyYaw, ticksDelta);
         float swimAmount = lackey.getSwimAmount(ticksDelta);
-        if (swimAmount > 0.0F) matrices.mulPose(Vector3f.XP.rotationDegrees(Mth.lerp(swimAmount, lackey.getXRot(), -10.0F - lackey.getXRot())));
+        if (swimAmount > 0.0F) matrices.mulPose(Axis.XP.rotationDegrees(Mth.lerp(swimAmount, lackey.getXRot(), -10.0F - lackey.getXRot())));
     }
 }

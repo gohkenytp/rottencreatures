@@ -36,4 +36,9 @@ public class BurnedModel extends ZombieModel<Burned> {
     private static CubeDeformation add(float grow) {
         return new CubeDeformation(grow + 0.25F);
     }
+
+    @Override
+    public boolean isAggressive(Burned burned) {
+        return burned.isAggressive();
+    }
 }

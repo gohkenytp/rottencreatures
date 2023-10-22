@@ -23,10 +23,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(ServerLevel.class)
 public abstract class ServerLevelMixin {
     @Shadow protected abstract BlockPos findLightningTargetAround(BlockPos blockPos);
+
     private final ServerLevel $this = ServerLevel.class.cast(this);
 
     /**
-     * for each lightning that is struck, there's a chance to spawn an Immortal
+     * for each lightning that is struck, there's a 5% chance to spawn an Immortal
      */
     @Inject(method = "tickChunk", at = @At("TAIL"))
     private void rc$tickChunk(LevelChunk chunk, int i, CallbackInfo ci) {
@@ -38,7 +39,7 @@ public abstract class ServerLevelMixin {
             BlockPos pos = this.findLightningTargetAround($this.getBlockRandomPos(x, 0, z, 15));
             if ($this.isRainingAt(pos)) {
                 DifficultyInstance difficulty = $this.getCurrentDifficultyAt(pos);
-                boolean canSpawn = $this.getGameRules().getBoolean(GameRules.RULE_DOMOBSPAWNING) && $this.random.nextDouble() < (double)difficulty.getEffectiveDifficulty() * ConfigEntries.IMMORTAL_SPAWN_CHANCE && !$this.getBlockState(pos.below()).is(Blocks.LIGHTNING_ROD);
+                boolean canSpawn = $this.getGameRules().getBoolean(GameRules.RULE_DOMOBSPAWNING) && $this.random.nextDouble() < (double)difficulty.getEffectiveDifficulty() * ConfigEntries.IMMORTAL_CHANCE.value() && !$this.getBlockState(pos.below()).is(Blocks.LIGHTNING_ROD);
                 if (canSpawn) {
                     Immortal immortal = RCEntityTypes.IMMORTAL.get().create($this);
                     immortal.setPos(pos.getX(), pos.getY(), pos.getZ());

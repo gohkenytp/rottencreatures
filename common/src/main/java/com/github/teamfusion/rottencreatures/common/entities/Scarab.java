@@ -1,6 +1,5 @@
 package com.github.teamfusion.rottencreatures.common.entities;
 
-import com.github.teamfusion.rottencreatures.client.registries.RCSoundEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -52,7 +51,7 @@ public class Scarab extends Monster {
 
     @Override
     public boolean hurt(DamageSource source, float amount) {
-        return source != DamageSource.CACTUS && super.hurt(source, amount);
+        return source != level().damageSources().cactus() && super.hurt(source, amount);
     }
 
     @Override
@@ -62,7 +61,7 @@ public class Scarab extends Monster {
 
     @Override
     protected SoundEvent getDeathSound() {
-        return RCSoundEvents.BEETLE_DEATH.get();
+        return SoundEvents.SILVERFISH_DEATH;
     }
 
     @Override
@@ -76,7 +75,7 @@ public class Scarab extends Monster {
     }
 
     @Override
-    protected void playStepSound(BlockPos pos, BlockState state) {
+    protected void playStepSound(BlockPos blockPos, BlockState blockState) {
         this.playSound(SoundEvents.SILVERFISH_STEP, 0.15F, 1.0F);
     }
 }

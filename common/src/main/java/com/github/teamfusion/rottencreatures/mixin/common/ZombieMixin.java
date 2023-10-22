@@ -28,20 +28,20 @@ public class ZombieMixin extends Monster {
      */
     @Override
     public void die(DamageSource source) {
-        if (this.getType() == EntityType.ZOMBIE && (this.level.getDifficulty() == Difficulty.NORMAL || this.level.getDifficulty() == Difficulty.HARD)) {
-            if (this.level.getDifficulty() != Difficulty.HARD && this.level.random.nextBoolean()) return;
+        if (this.getType() == EntityType.ZOMBIE && (this.level().getDifficulty() == Difficulty.NORMAL || this.level().getDifficulty() == Difficulty.HARD)) {
+            if (this.level().getDifficulty() != Difficulty.HARD && this.level().random.nextBoolean()) return;
 
             if (this.isInLava()) {
                 this.convertTo(RCEntityTypes.BURNED.get(), true);
                 if (!this.isSilent()) {
-                    this.level.levelEvent(1026, this.blockPosition(), 0);
+                    this.level().levelEvent(1026, this.blockPosition(), 0);
                 }
             }
 
             if (this.isInPowderSnow || this.wasInPowderSnow) {
                 this.convertTo(RCEntityTypes.FROSTBITTEN.get(), true);
                 if (!this.isSilent()) {
-                    this.level.levelEvent(1026, this.blockPosition(), 0);
+                    this.level().levelEvent(1026, this.blockPosition(), 0);
                 }
             }
         }

@@ -36,12 +36,12 @@ public class TreasureChestItem extends Item {
             AABB boundingBox = RCEntityTypes.TREASURE_CHEST.get().getDimensions().makeBoundingBox(position.x(), position.y(), position.z());
             if (level.noCollision(null, boundingBox) && level.getEntities(null, boundingBox).isEmpty()) {
                 if (level instanceof ServerLevel server) {
-                    TreasureChest chest = RCEntityTypes.TREASURE_CHEST.get().create(server, stack.getTag(), null, context.getPlayer(), pos, MobSpawnType.SPAWN_EGG, true, true);
+                    TreasureChest chest = RCEntityTypes.TREASURE_CHEST.get().create(server);
                     if (chest == null) {
                         return InteractionResult.FAIL;
                     }
 
-                    float yaw = (float)Mth.floor((Mth.wrapDegrees(context.getRotation() - 180.0F) + 22.5F) / 45.0F) * 45.0F;
+                    float yaw = (float) Mth.floor((Mth.wrapDegrees(context.getRotation() - 180.0F) + 22.5F) / 45.0F) * 45.0F;
                     chest.moveTo(chest.getX(), chest.getY(), chest.getZ(), yaw, 0.0F);
                     server.addFreshEntityWithPassengers(chest);
                     level.playSound(null, chest.getX(), chest.getY(), chest.getZ(), SoundEvents.ARMOR_STAND_PLACE, SoundSource.BLOCKS, 0.75F, 0.8F);

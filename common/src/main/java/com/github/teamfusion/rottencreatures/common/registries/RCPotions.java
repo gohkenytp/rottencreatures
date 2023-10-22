@@ -12,7 +12,7 @@ import net.minecraft.world.item.alchemy.Potions;
 import java.util.function.Supplier;
 
 public class RCPotions {
-    public static final CoreRegistry<Potion> POTIONS = CoreRegistry.create(Registry.POTION, RottenCreatures.MOD_ID);
+    public static final CoreRegistry<Potion> POTIONS = CoreRegistry.create(ForgeRegistries.POTIONS, RottenCreatures.MOD_ID);
 
     public static final Supplier<Potion> CORRUPTED = create("corrupted", Potion::new);
     public static final Supplier<Potion> FREEZE = create("freeze", () -> new Potion(new MobEffectInstance(RCMobEffects.FREEZE.get(), 400)));

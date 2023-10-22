@@ -21,7 +21,7 @@ public class FollowLeaderGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        List<? extends LivingEntity> entities = this.entity.level.getEntitiesOfClass(this.leaderType, this.entity.getBoundingBox().inflate(8.0D, 4.0D, 8.0D));
+        List<? extends LivingEntity> entities = this.entity.level().getEntitiesOfClass(this.leaderType, this.entity.getBoundingBox().inflate(8.0D, 4.0D, 8.0D));
         LivingEntity leader = null;
         double maxDistance = Double.MAX_VALUE;
 

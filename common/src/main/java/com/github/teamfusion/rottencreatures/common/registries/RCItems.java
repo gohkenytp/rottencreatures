@@ -16,7 +16,7 @@ import net.minecraft.world.item.Item;
 import java.util.function.Supplier;
 
 public class RCItems {
-    public static final CoreRegistry<Item> ITEMS = CoreRegistry.create(Registry.ITEM, RottenCreatures.MOD_ID);
+    public static final CoreRegistry<Item> ITEMS = CoreRegistry.create(ForgeRegistries.ITEMS, RottenCreatures.MOD_ID);
 
     // Spawns
     public static final Supplier<Item> BURNED_SPAWN_EGG = create("burned_spawn_egg", spawnEgg(RCEntityTypes.BURNED, 5969689, 14244138));

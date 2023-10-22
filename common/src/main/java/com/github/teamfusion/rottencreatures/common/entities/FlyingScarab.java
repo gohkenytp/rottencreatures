@@ -56,6 +56,6 @@ public class FlyingScarab extends Scarab implements FlyingAnimal {
 
     @Override
     public boolean isFlying() {
-        return !this.onGround;
+        return !this.onGround();
     }
 }

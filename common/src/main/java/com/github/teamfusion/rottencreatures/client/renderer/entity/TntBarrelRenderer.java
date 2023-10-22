@@ -3,8 +3,9 @@ package com.github.teamfusion.rottencreatures.client.renderer.entity;
 import com.github.teamfusion.rottencreatures.common.entities.PrimedTntBarrel;
 import com.github.teamfusion.rottencreatures.common.registries.RCBlocks;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.TntMinecartRenderer;
@@ -13,9 +14,12 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 
 public class TntBarrelRenderer extends EntityRenderer<PrimedTntBarrel> {
+    private final BlockRenderDispatcher blockRenderer;
+
     public TntBarrelRenderer(EntityRendererProvider.Context context) {
         super(context);
         this.shadowRadius = 0.5F;
+        this.blockRenderer = context.getBlockRenderDispatcher();
     }
 
     @Override
@@ -31,10 +35,10 @@ public class TntBarrelRenderer extends EntityRenderer<PrimedTntBarrel> {
             float scale = 1.0F + delta * 0.3F;
             matrices.scale(scale, scale, scale);
         }
-        matrices.mulPose(Vector3f.YP.rotationDegrees(-90.0F));
+        matrices.mulPose(Axis.YP.rotationDegrees(-90.0F));
         matrices.translate(-0.5D, -0.5D, 0.5D);
-        matrices.mulPose(Vector3f.YP.rotationDegrees(90.0F));
-        TntMinecartRenderer.renderWhiteSolidBlock(RCBlocks.TNT_BARREL.get().defaultBlockState(), matrices, source, light, cooldown / 5 % 2 == 0);
+        matrices.mulPose(Axis.YP.rotationDegrees(90.0F));
+        TntMinecartRenderer.renderWhiteSolidBlock(this.blockRenderer, RCBlocks.TNT_BARREL.get().defaultBlockState(), matrices, source, light, cooldown / 5 % 2 == 0);
         matrices.popPose();
         super.render(tnt, yaw, angle, matrices, source, light);
     }

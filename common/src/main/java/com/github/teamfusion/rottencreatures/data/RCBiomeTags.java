@@ -1,12 +1,9 @@
 package com.github.teamfusion.rottencreatures.data;
 
 import com.github.teamfusion.rottencreatures.RottenCreatures;
-import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
-import net.minecraft.world.entity.MobSpawnType;
-import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.level.biome.Biome;
 
 public class RCBiomeTags {
@@ -27,10 +24,6 @@ public class RCBiomeTags {
     public record Spawner(TagKey<Biome> whitelist, TagKey<Biome> blacklist) {
         public static Spawner of(String name) {
             return new Spawner(create(name + "_whitelist"), create(name + "_blacklist"));
-        }
-
-        public static SpawnGroupData shouldSpawn(Holder<Biome> biome, Spawner spawner, MobSpawnType spawnType, SpawnGroupData data) {
-            return (spawnType == MobSpawnType.NATURAL && biome.is(spawner.whitelist()) && !biome.is(spawner.blacklist())) ? data : null;
         }
     }
 }

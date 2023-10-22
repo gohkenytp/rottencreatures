@@ -1,6 +1,5 @@
 package com.github.teamfusion.rottencreatures.common.entities;
 
-import com.github.teamfusion.rottencreatures.client.registries.RCSoundEvents;
 import com.github.teamfusion.rottencreatures.common.registries.RCEntityTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -8,7 +7,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundEvent;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.damagesource.DamageSource;
@@ -25,8 +24,6 @@ import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Random;
 
 public class Mummy extends SpellcasterZombie {
     private static final EntityDataAccessor<Boolean> DATA_IS_ANCIENT = SynchedEntityData.defineId(Mummy.class, EntityDataSerializers.BOOLEAN);
@@ -56,7 +53,7 @@ public class Mummy extends SpellcasterZombie {
     @Override
     protected void customServerAiStep() {
         super.customServerAiStep();
-        if (this.level.getDifficulty() == Difficulty.NORMAL || this.level.getDifficulty() == Difficulty.HARD) {
+        if (this.level().getDifficulty() == Difficulty.NORMAL || this.level().getDifficulty() == Difficulty.HARD) {
             if (this.getHealth() <= 18.0D) {
                 this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 1200));
             } else if (this.getHealth() <= 10.0D) {
@@ -71,7 +68,7 @@ public class Mummy extends SpellcasterZombie {
     public boolean doHurtTarget(Entity entity) {
         boolean hurtTarget = super.doHurtTarget(entity);
         if (hurtTarget && this.getMainHandItem().isEmpty() && entity instanceof LivingEntity living) {
-            float modifier = this.level.getCurrentDifficultyAt(this.blockPosition()).getEffectiveDifficulty();
+            float modifier = this.level().getCurrentDifficultyAt(this.blockPosition()).getEffectiveDifficulty();
             living.addEffect(new MobEffectInstance(MobEffects.HUNGER, 140 * (int)modifier, 2), this);
 
             if (this.random.nextBoolean()) {
@@ -83,33 +80,18 @@ public class Mummy extends SpellcasterZombie {
     }
 
     @Override
-    protected SoundEvent getDeathSound() {
-        return RCSoundEvents.MUMMY_DEATH.get();
-    }
-
-    @Override
-    protected SoundEvent getHurtSound(DamageSource source) {
-        return RCSoundEvents.MUMMY_HURT.get();
-    }
-
-    @Override
-    protected SoundEvent getAmbientSound() {
-        return RCSoundEvents.MUMMY_AMBIENT.get();
-    }
-
-    @Override
     public void die(DamageSource damageSource) {
         super.die(damageSource);
         this.summonScarabs(3);
     }
 
     private void summonScarabs(int max) {
-        if (this.level instanceof ServerLevel level) {
+        if (this.level() instanceof ServerLevel level) {
             for (int i = 0; i <= this.random.nextInt(max); i++) {
                 BlockPos pos = this.blockPosition().offset(0, 1, 0);
-                Scarab scarab = this.isAncient() ? RCEntityTypes.FLYING_SCARAB.get().create(this.level) : RCEntityTypes.SCARAB.get().create(this.level);
+                Scarab scarab = this.isAncient() ? RCEntityTypes.FLYING_SCARAB.get().create(this.level()) : RCEntityTypes.SCARAB.get().create(this.level());
                 scarab.moveTo(pos, 0.0F, 0.0F);
-                scarab.finalizeSpawn(level, this.level.getCurrentDifficultyAt(pos), MobSpawnType.MOB_SUMMONED, null, null);
+                scarab.finalizeSpawn(level, this.level().getCurrentDifficultyAt(pos), MobSpawnType.MOB_SUMMONED, null, null);
                 level.addFreshEntity(scarab);
             }
         }
@@ -145,7 +127,7 @@ public class Mummy extends SpellcasterZombie {
         this.getEntityData().set(DATA_IS_ANCIENT, ancient);
     }
 
-    public static boolean checkMummySpawnRules(EntityType<Mummy> type, ServerLevelAccessor level, MobSpawnType spawnType, BlockPos pos, Random random) {
+    public static boolean checkMummySpawnRules(EntityType<Mummy> type, ServerLevelAccessor level, MobSpawnType spawnType, BlockPos pos, RandomSource random) {
         return checkMonsterSpawnRules(type, level, spawnType, pos, random) && (spawnType == MobSpawnType.SPAWNER || level.canSeeSky(pos));
     }
 

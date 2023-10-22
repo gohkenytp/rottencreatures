@@ -1,6 +1,5 @@
 package com.github.teamfusion.rottencreatures.common.entities;
 
-import com.github.teamfusion.rottencreatures.client.registries.RCSoundEvents;
 import com.github.teamfusion.rottencreatures.common.registries.RCBlocks;
 import com.github.teamfusion.rottencreatures.common.registries.RCEntityTypes;
 import net.minecraft.core.BlockPos;
@@ -9,9 +8,9 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -31,8 +30,6 @@ import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
-
-import java.util.Random;
 
 public class DeadBeard extends SpellcasterZombie {
     private static final EntityDataAccessor<Integer> DATA_FUSE_ID = SynchedEntityData.defineId(DeadBeard.class, EntityDataSerializers.INT);
@@ -92,8 +89,8 @@ public class DeadBeard extends SpellcasterZombie {
     }
 
     @Override
-    protected void populateDefaultEquipmentSlots(DifficultyInstance difficulty) {
-        super.populateDefaultEquipmentSlots(difficulty);
+    protected void populateDefaultEquipmentSlots(RandomSource random, DifficultyInstance difficulty) {
+        super.populateDefaultEquipmentSlots(random, difficulty);
         this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.STONE_SWORD));
     }
 
@@ -111,22 +108,7 @@ public class DeadBeard extends SpellcasterZombie {
     }
 
     private void explode() {
-        this.level.explode(this, this.getX(), this.getY(0.0625D), this.getZ(), 4.0F, this.level.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING) ? Explosion.BlockInteraction.BREAK : Explosion.BlockInteraction.NONE);
-    }
-
-    @Override
-    protected SoundEvent getDeathSound() {
-        return RCSoundEvents.DEAD_BEARD_DEATH.get();
-    }
-
-    @Override
-    protected SoundEvent getHurtSound(DamageSource source) {
-        return RCSoundEvents.DEAD_BEARD_HURT.get();
-    }
-
-    @Override
-    protected SoundEvent getAmbientSound() {
-        return RCSoundEvents.DEAD_BEARD_AMBIENT.get();
+        this.level().explode(this, this.getX(), this.getY(0.0625D), this.getZ(), 4.0F, this.level().getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING) ? Level.ExplosionInteraction.TNT : Level.ExplosionInteraction.NONE);
     }
 
     @Override
@@ -150,8 +132,8 @@ public class DeadBeard extends SpellcasterZombie {
         }
 
         if (this.isIgnited() && !this.isDeadOrDying()) {
-            if (!this.level.isClientSide && this.getFuse() == 100) {
-                if (!this.isSilent()) this.level.playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.TNT_PRIMED, SoundSource.BLOCKS, 1.0F, 1.0F);
+            if (!this.level().isClientSide && this.getFuse() == 100) {
+                if (!this.isSilent()) this.level().playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.TNT_PRIMED, SoundSource.BLOCKS, 1.0F, 1.0F);
             }
 
             int cooldown = this.getFuse() - 1;
@@ -164,8 +146,8 @@ public class DeadBeard extends SpellcasterZombie {
     }
 
     @Override
-    public boolean canAttack(LivingEntity livingEntity) {
-        return !this.isIgnited() && super.canAttack(livingEntity);
+    public boolean canAttack(LivingEntity entity) {
+        return !this.isIgnited() && super.canAttack(entity);
     }
 
     /**
@@ -176,7 +158,7 @@ public class DeadBeard extends SpellcasterZombie {
         return false;
     }
 
-    public static boolean checkDeadBeardSpawnRules(EntityType<DeadBeard> type, ServerLevelAccessor level, MobSpawnType spawnType, BlockPos pos, Random random) {
+    public static boolean checkDeadBeardSpawnRules(EntityType<DeadBeard> type, ServerLevelAccessor level, MobSpawnType spawnType, BlockPos pos, RandomSource random) {
         return checkAnyLightMonsterSpawnRules(type, level, spawnType, pos, random) && (spawnType == MobSpawnType.SPAWNER || level.canSeeSky(pos));
     }
 
@@ -191,8 +173,8 @@ public class DeadBeard extends SpellcasterZombie {
             if (!super.canUse()) {
                 return false;
             } else {
-                int zombies = DeadBeard.this.level.getNearbyEntities(ZombieLackey.class, this.lackeyCountTargeting, DeadBeard.this, DeadBeard.this.getBoundingBox().inflate(16.0D)).size();
-                int skeletons = DeadBeard.this.level.getNearbyEntities(SkeletonLackey.class, this.lackeyCountTargeting, DeadBeard.this, DeadBeard.this.getBoundingBox().inflate(16.0D)).size();
+                int zombies = DeadBeard.this.level().getNearbyEntities(ZombieLackey.class, this.lackeyCountTargeting, DeadBeard.this, DeadBeard.this.getBoundingBox().inflate(16.0D)).size();
+                int skeletons = DeadBeard.this.level().getNearbyEntities(SkeletonLackey.class, this.lackeyCountTargeting, DeadBeard.this, DeadBeard.this.getBoundingBox().inflate(16.0D)).size();
                 return DeadBeard.this.random.nextInt(4) + 1 > (zombies + skeletons);
             }
         }
@@ -202,17 +184,16 @@ public class DeadBeard extends SpellcasterZombie {
          */
         @Override
         protected void performSpellCasting() {
-            ServerLevel level = (ServerLevel)DeadBeard.this.level;
+            ServerLevel level = (ServerLevel)DeadBeard.this.level();
 
-            DeadBeard.this.level.playSound(null, DeadBeard.this.eyeBlockPosition(), RCSoundEvents.DEAD_BEARD_CALL.get(), SoundSource.HOSTILE, 1.0F, 1.0F);
             for (int i = 0; i <= DeadBeard.this.random.nextInt(4); i++) {
-                BlockPos pos = DeadBeard.this.blockPosition().offset(-2 + DeadBeard.this.random.nextInt(5), -0.8D, -2 + DeadBeard.this.random.nextInt(5));
-                Monster lackey = DeadBeard.this.random.nextBoolean() ? RCEntityTypes.ZOMBIE_LACKEY.get().create(DeadBeard.this.level) : RCEntityTypes.SKELETON_LACKEY.get().create(DeadBeard.this.level);
+                BlockPos pos = DeadBeard.this.blockPosition().offset(-2 + DeadBeard.this.random.nextInt(5), (int) -0.8D, -2 + DeadBeard.this.random.nextInt(5));
+                Monster lackey = DeadBeard.this.random.nextBoolean() ? RCEntityTypes.ZOMBIE_LACKEY.get().create(DeadBeard.this.level()) : RCEntityTypes.SKELETON_LACKEY.get().create(DeadBeard.this.level());
                 if (lackey instanceof Lackey lackeyIn) {
                     lackey.moveTo(pos, 0.0F, 0.0F);
                     lackey.setDeltaMovement(0.0D, 0.5D, 0.0D);
-                    DeadBeard.this.level.playSound(null, lackey.blockPosition(), SoundEvents.GRAVEL_BREAK, SoundSource.BLOCKS, 1.0F, 1.0F);
-                    lackey.finalizeSpawn(level, DeadBeard.this.level.getCurrentDifficultyAt(pos), MobSpawnType.MOB_SUMMONED, null, null);
+                    DeadBeard.this.level().playSound(null, lackey.blockPosition(), SoundEvents.GRAVEL_BREAK, SoundSource.NEUTRAL, 1.0F, 1.0F);
+                    lackey.finalizeSpawn(level, DeadBeard.this.level().getCurrentDifficultyAt(pos), MobSpawnType.MOB_SUMMONED, null, null);
                     lackeyIn.setLimitedLife(500);
                     level.addFreshEntity(lackey);
                 }

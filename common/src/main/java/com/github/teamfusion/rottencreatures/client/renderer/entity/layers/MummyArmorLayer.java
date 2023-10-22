@@ -3,7 +3,6 @@ package com.github.teamfusion.rottencreatures.client.renderer.entity.layers;
 import com.google.common.collect.Maps;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.minecraft.ResourceLocationException;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -43,7 +42,7 @@ public class MummyArmorLayer<T extends LivingEntity, M extends HumanoidModel<T>,
     private void renderArmorPiece(PoseStack matrices, MultiBufferSource source, T entity, EquipmentSlot slot, int light, A model) {
         ItemStack stack = entity.getItemBySlot(slot);
         if (stack.getItem() instanceof ArmorItem item) {
-            if (item.getSlot() == slot) {
+            if (item.getEquipmentSlot() == slot) {
                 this.getParentModel().copyPropertiesTo(model);
                 if (model == this.innerModel) {
                     model.leftLeg.y = 10;
@@ -96,11 +95,8 @@ public class MummyArmorLayer<T extends LivingEntity, M extends HumanoidModel<T>,
     }
 
     private void renderModel(PoseStack matrices, MultiBufferSource source, int light, ArmorItem item, boolean hasFoil, A model, boolean useInnerModel, float red, float green, float blue, @Nullable String overlay) {
-        ResourceLocation armor_location = this.getArmorLocation(item, useInnerModel, overlay);
-        if (armor_location != null) {
-            VertexConsumer vertices = ItemRenderer.getArmorFoilBuffer(source, RenderType.armorCutoutNoCull(armor_location), false, hasFoil);
-            model.renderToBuffer(matrices, vertices, light, OverlayTexture.NO_OVERLAY, red, green, blue, 1.0F);
-        }
+        VertexConsumer vertices = ItemRenderer.getArmorFoilBuffer(source, RenderType.armorCutoutNoCull(this.getArmorLocation(item, useInnerModel, overlay)), false, hasFoil);
+        model.renderToBuffer(matrices, vertices, light, OverlayTexture.NO_OVERLAY, red, green, blue, 1.0F);
     }
 
     private A getArmorModel(EquipmentSlot slot) {
@@ -111,13 +107,8 @@ public class MummyArmorLayer<T extends LivingEntity, M extends HumanoidModel<T>,
         return slot == EquipmentSlot.LEGS;
     }
 
-    @Nullable
     private ResourceLocation getArmorLocation(ArmorItem armor, boolean legs, @Nullable String overlay) {
         String location = "textures/models/armor/" + armor.getMaterial().getName() + "_layer_" + (legs ? 2 : 1) + (overlay == null ? "" : "_" + overlay) + ".png";
-        try {
-            return ARMOR_LOCATION_CACHE.computeIfAbsent(location, ResourceLocation::new);
-        } catch (ResourceLocationException e) {
-            return null;
-        }
+        return ARMOR_LOCATION_CACHE.computeIfAbsent(location, ResourceLocation::new);
     }
 }

@@ -4,6 +4,7 @@ import com.github.teamfusion.rottencreatures.RottenCreatures;
 import com.github.teamfusion.rottencreatures.client.model.LayerBuilder;
 import com.github.teamfusion.rottencreatures.client.model.MummyModel;
 import com.github.teamfusion.rottencreatures.common.entities.Mummy;
+import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.HumanoidMobRenderer;
 import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
@@ -14,7 +15,7 @@ public class MummyRenderer<T extends Mummy> extends HumanoidMobRenderer<T, Mummy
 
     public MummyRenderer(EntityRendererProvider.Context context) {
         super(context, new MummyModel<>(context.bakeLayer(LAYER.getMain())), 0.5F);
-        this.addLayer(new HumanoidArmorLayer<>(this, new MummyModel<>(context.bakeLayer(LAYER.getInner())), new MummyModel<>(context.bakeLayer(LAYER.getOuter()))));
+        this.addLayer(new HumanoidArmorLayer<>(this, new MummyModel<>(context.bakeLayer(ModelLayers.PLAYER_INNER_ARMOR)), new MummyModel<>(context.bakeLayer(ModelLayers.PLAYER_OUTER_ARMOR)), context.getModelManager()));
     }
 
     @Override

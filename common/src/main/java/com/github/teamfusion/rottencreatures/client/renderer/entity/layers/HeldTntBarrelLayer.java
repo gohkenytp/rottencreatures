@@ -4,7 +4,7 @@ import com.github.teamfusion.rottencreatures.client.model.DeadBeardModel;
 import com.github.teamfusion.rottencreatures.common.entities.DeadBeard;
 import com.github.teamfusion.rottencreatures.common.registries.RCBlocks;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
@@ -23,7 +23,7 @@ public class HeldTntBarrelLayer<T extends DeadBeard> extends RenderLayer<T, Dead
         BlockState state = RCBlocks.TNT_BARREL.get().defaultBlockState();
         if (deadBeard.isIgnited()) {
             matrices.pushPose();
-            matrices.mulPose(Vector3f.XP.rotationDegrees(180.0F));
+            matrices.mulPose(Axis.XP.rotationDegrees(180.0F));
             matrices.translate(-0.5F, 0.75F, -0.5F);
             this.renderTNTBarrel(deadBeard, tickDelta, state, matrices, source, light);
             matrices.popPose();

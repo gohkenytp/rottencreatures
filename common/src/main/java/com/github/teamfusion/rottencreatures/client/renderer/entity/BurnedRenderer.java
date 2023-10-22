@@ -6,7 +6,7 @@ import com.github.teamfusion.rottencreatures.client.model.LayerBuilder;
 import com.github.teamfusion.rottencreatures.client.renderer.entity.layers.BurnedLavaLayer;
 import com.github.teamfusion.rottencreatures.common.entities.Burned;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import net.minecraft.client.renderer.entity.AbstractZombieRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
@@ -30,10 +30,10 @@ public class BurnedRenderer extends AbstractZombieRenderer<Burned, BurnedModel> 
     @Override
     protected void setupRotations(Burned burned, PoseStack matrices, float animationProgress, float bodyYaw, float tickDelta) {
         super.setupRotations(burned, matrices, animationProgress, bodyYaw, tickDelta);
-        if ((double)burned.animationSpeed >= 0.01D) {
-            float timestamp = burned.animationPosition - burned.animationSpeed * (1.0F - tickDelta) + 6.0F;
+        if (!((double)burned.getMoveSpeed() < 0.01D)) {
+            float timestamp = burned.walkAnimation.position() - burned.walkAnimation.speed() * (1.0F - tickDelta) + 6.0F;
             float degreeModifier = (Math.abs(timestamp % 13.0F - 6.5F) - 3.25F) / 3.25F;
-            matrices.mulPose(Vector3f.ZP.rotationDegrees(6.5F * degreeModifier));
+            matrices.mulPose(Axis.ZP.rotationDegrees(6.5F * degreeModifier));
         }
     }
 }

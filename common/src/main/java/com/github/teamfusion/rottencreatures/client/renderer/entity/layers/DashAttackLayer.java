@@ -5,7 +5,7 @@ import com.github.teamfusion.rottencreatures.client.model.LayerBuilder;
 import com.github.teamfusion.rottencreatures.common.entities.Immortal;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import net.minecraft.client.model.geom.EntityModelSet;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
@@ -44,7 +44,7 @@ public class DashAttackLayer<T extends Immortal> extends RenderLayer<T, Immortal
             for(int i = 0; i < 3; ++i) {
                 matrices.pushPose();
                 float degrees = animationProgress * (float)(-(45 + i * 5));
-                matrices.mulPose(Vector3f.YP.rotationDegrees(degrees));
+                matrices.mulPose(Axis.YP.rotationDegrees(degrees));
                 float scale = 0.75F * (float)i;
                 matrices.scale(scale, scale, scale);
                 matrices.translate(0.0, -0.2F + 0.6F * (float)i, 0.0);

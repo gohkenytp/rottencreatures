@@ -1,13 +1,11 @@
 package com.github.teamfusion.rottencreatures.common.entities;
 
-import com.github.teamfusion.rottencreatures.client.registries.RCSoundEvents;
 import com.github.teamfusion.rottencreatures.common.registries.RCEntityTypes;
 import com.github.teamfusion.rottencreatures.common.registries.RCItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.sounds.SoundEvent;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
@@ -25,8 +23,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Random;
 
 /**
  * Concepts:
@@ -69,11 +65,9 @@ public class GlacialHunter extends Zombie {
     }
 
     @Override
-    protected void populateDefaultEquipmentSlots(DifficultyInstance difficulty) {
-        super.populateDefaultEquipmentSlots(difficulty);
-        if (this.level.getRandom().nextFloat() <= 0.4F) {
-            this.setSpear();
-        }
+    protected void populateDefaultEquipmentSlots(RandomSource random, DifficultyInstance difficulty) {
+        super.populateDefaultEquipmentSlots(random, difficulty);
+        if (this.level().getRandom().nextFloat() <= 0.4F) this.setSpear();
     }
 
     public boolean hasSpear() {
@@ -94,26 +88,11 @@ public class GlacialHunter extends Zombie {
     public boolean doHurtTarget(Entity entity) {
         boolean hurtTarget = super.doHurtTarget(entity);
         if (hurtTarget && this.getMainHandItem().isEmpty() && entity instanceof LivingEntity living) {
-            float modifier = this.level.getCurrentDifficultyAt(this.blockPosition()).getEffectiveDifficulty();
+            float modifier = this.level().getCurrentDifficultyAt(this.blockPosition()).getEffectiveDifficulty();
             living.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 140 * (int)modifier), this);
         }
 
         return hurtTarget;
-    }
-
-    @Override
-    protected SoundEvent getDeathSound() {
-        return RCSoundEvents.GLACIAL_HUNTER_DEATH.get();
-    }
-
-    @Override
-    protected SoundEvent getHurtSound(DamageSource source) {
-        return RCSoundEvents.GLACIAL_HUNTER_HURT.get();
-    }
-
-    @Override
-    protected SoundEvent getAmbientSound() {
-        return RCSoundEvents.GLACIAL_HUNTER_AMBIENT.get();
     }
 
     @Override
@@ -132,18 +111,19 @@ public class GlacialHunter extends Zombie {
         super.travel(vec3);
     }
 
-    public static boolean checkGlacialHunterSpawnRules(EntityType<GlacialHunter> type, ServerLevelAccessor level, MobSpawnType spawnType, BlockPos pos, Random random) {
+    public static boolean checkGlacialHunterSpawnRules(EntityType<GlacialHunter> type, ServerLevelAccessor level, MobSpawnType spawnType, BlockPos pos, RandomSource random) {
         return checkMonsterSpawnRules(type, level, spawnType, pos, random) && (spawnType == MobSpawnType.SPAWNER || level.canSeeSky(pos));
     }
 
     @Nullable @Override
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, MobSpawnType spawnType, @Nullable SpawnGroupData groupData, @Nullable CompoundTag tag) {
-        HunterWolf wolf = RCEntityTypes.HUNTER_WOLF.get().create(this.level);
+        HunterWolf wolf = RCEntityTypes.HUNTER_WOLF.get().create(this.level());
         if (level.getRandom().nextFloat() <= 0.3F && spawnType == MobSpawnType.NATURAL && wolf != null) {
-            wolf.moveTo(this.blockPosition().offset(-2 + this.level.random.nextInt(3), 1, -2 + this.level.random.nextInt(3)), 0.0F, 0.0F);
+            wolf.moveTo(this.blockPosition().offset(-2 + this.level().random.nextInt(3), 1, -2 + this.level().random.nextInt(3)), 0.0F, 0.0F);
             wolf.setOwner(this);
             level.addFreshEntity(wolf);
         }
+
 
         return super.finalizeSpawn(level, difficulty, spawnType, groupData, tag);
     }

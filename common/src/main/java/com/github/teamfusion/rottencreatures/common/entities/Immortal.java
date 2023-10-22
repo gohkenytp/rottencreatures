@@ -1,15 +1,13 @@
 package com.github.teamfusion.rottencreatures.common.entities;
 
-import com.github.teamfusion.rottencreatures.client.registries.RCSoundEvents;
+import com.github.teamfusion.rottencreatures.common.registries.RCEntityTypes;
 import com.github.teamfusion.rottencreatures.common.registries.RCMobEffects;
-import com.github.teamfusion.rottencreatures.data.RCEntityTypeTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
@@ -81,7 +79,7 @@ public class Immortal extends SpellcasterZombie {
         this.goalSelector.addGoal(7, new DashingGoal(this));
         this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Zombie.class, true) {
             @Override public boolean canUse() {
-                return super.canUse() && this.target != null && !this.target.getType().is(RCEntityTypeTags.IGNORED_BY_IMMORTAL);
+                return super.canUse() && this.target.getType() != RCEntityTypes.ZAP.get() && this.target.getType() != RCEntityTypes.IMMORTAL.get() && this.target.getType() != EntityType.ZOMBIE_VILLAGER;
             }
         });
     }
@@ -94,7 +92,7 @@ public class Immortal extends SpellcasterZombie {
         super.customServerAiStep();
         if ((this.tickCount + this.getId()) % 1200 == 0) {
             MobEffect effect = MobEffects.DAMAGE_BOOST;
-            List<Zap> zaps = this.level.getEntitiesOfClass(Zap.class, this.getBoundingBox().inflate(16.0D, 4.0D, 16.0D));
+            List<Zap> zaps = this.level().getEntitiesOfClass(Zap.class, this.getBoundingBox().inflate(16.0D, 4.0D, 16.0D));
             int size = zaps.size() - 1 == -1 ? 0 : zaps.size() - 1;
             if (this.hasPower() && !zaps.isEmpty() && (!this.hasEffect(effect) || this.getEffect(effect).getAmplifier() < size || this.getEffect(effect).getDuration() < 600)) {
                 this.addEffect(new MobEffectInstance(effect, 1200, size));
@@ -108,11 +106,11 @@ public class Immortal extends SpellcasterZombie {
     @Override
     public void tick() {
         super.tick();
-        if (!this.level.isClientSide && this.isAlive() && !this.isNoAi()) {
-            LightningBolt bolt = EntityType.LIGHTNING_BOLT.create(this.level);
-            if (this.isInWaterOrBubble() && bolt != null) {
+        if (!this.level().isClientSide && this.isAlive() && !this.isNoAi()) {
+            if (this.isInWaterOrBubble()) {
+                LightningBolt bolt = EntityType.LIGHTNING_BOLT.create(this.level());
                 bolt.moveTo(Vec3.atBottomCenterOf(this.blockPosition().offset(0, 1, 0)));
-                this.level.addFreshEntity(bolt);
+                this.level().addFreshEntity(bolt);
                 this.discard();
             }
         }
@@ -122,20 +120,6 @@ public class Immortal extends SpellcasterZombie {
         }
     }
 
-    @Override
-    protected SoundEvent getDeathSound() {
-        return RCSoundEvents.IMMORTAL_DEATH.get();
-    }
-
-    @Override
-    protected SoundEvent getHurtSound(DamageSource source) {
-        return RCSoundEvents.IMMORTAL_HURT.get();
-    }
-
-    @Override
-    protected SoundEvent getAmbientSound() {
-        return this.getTarget() != null ? RCSoundEvents.IMMORTAL_ANGRY.get() : RCSoundEvents.IMMORTAL_AMBIENT.get();
-    }
 
     /**
      * it will apply the Channeled effect while hitting a target, the durability depends on the difficulty.
@@ -145,11 +129,11 @@ public class Immortal extends SpellcasterZombie {
     public boolean doHurtTarget(Entity entity) {
         boolean hurt = super.doHurtTarget(entity);
         if (hurt && (this.getMainHandItem().isEmpty() || this.isDashing()) && entity instanceof LivingEntity living) {
-            float modifier = this.level.getCurrentDifficultyAt(this.blockPosition()).getEffectiveDifficulty();
+            float modifier = this.level().getCurrentDifficultyAt(this.blockPosition()).getEffectiveDifficulty();
             living.addEffect(new MobEffectInstance(RCMobEffects.CHANNELLED.get(), 140 * (int)modifier), this);
             Zap.convertToZap(this, living);
 
-            if (this.isDashing()) entity.hurt(DamageSource.mobAttack(this), 16.0F);
+            if (this.isDashing()) entity.hurt(entity.level().damageSources().mobAttack(this), 16);
         }
 
         return hurt;
@@ -162,28 +146,23 @@ public class Immortal extends SpellcasterZombie {
     @Override
     protected void doPush(Entity entity) {
         super.doPush(entity);
-        if (entity instanceof LivingEntity living) {
-            this.level.playSound(null, this.eyeBlockPosition(), RCSoundEvents.IMMORTAL_ELECTROSHOCK.get(), SoundSource.HOSTILE, 1.0F, 1.0F);
-            Zap.convertToZap(this, living);
-        }
-
-        if (this.isDashing()) {
-            this.doHurtTarget(entity);
-        }
+        if (entity instanceof LivingEntity living) Zap.convertToZap(this, living);
+        if (this.isDashing()) this.doHurtTarget(entity);
     }
 
     /**
      * checks for the damage source:
      * - if is a lightning bolt, then it will restore his health
      * - if it's cactus or an arrow then it will cancel the damage
+     *
      * when hurt it gets Movement Speed for 5 seconds and receives Resistance III for 3 seconds
      */
     @Override
     public boolean hurt(DamageSource source, float amount) {
-        if (source == DamageSource.LIGHTNING_BOLT) {
+        if (source == level().damageSources().lightningBolt()) {
             this.restoreHealth();
             return false;
-        } else if (source == DamageSource.CACTUS || Objects.equals(source.getMsgId(), "arrow")) {
+        } else if (source == level().damageSources().cactus() || Objects.equals(source.getMsgId(), "arrow")) {
             return false;
         } else {
             if (this.hasPower()) {
@@ -215,13 +194,12 @@ public class Immortal extends SpellcasterZombie {
     }
 
     public boolean hasPower() {
-        return this.level.isThundering();
+        return this.level().isThundering();
     }
 
     public void restoreHealth() {
         this.setHealth(this.getMaxHealth());
-        this.level.playSound(null, this.eyeBlockPosition(), RCSoundEvents.IMMORTAL_CURED.get(), SoundSource.HOSTILE, 1.0F, 1.0F);
-        this.level.addParticle(ParticleTypes.HAPPY_VILLAGER, this.getRandomX(1.0D), this.getRandomY() + 0.5D, this.getRandomZ(1.0D), 0.0D, 0.0D, 0.0D);
+        this.level().addParticle(ParticleTypes.HAPPY_VILLAGER, this.getRandomX(1.0D), this.getRandomY() + 0.5D, this.getRandomZ(1.0D), 0.0D, 0.0D, 0.0D);
     }
 
     /**
@@ -230,25 +208,21 @@ public class Immortal extends SpellcasterZombie {
     class SummonLightningGoal extends UseSpellGoal {
         @Override
         protected void performSpellCasting() {
-            ServerLevel level = (ServerLevel)Immortal.this.level;
+            ServerLevel level = (ServerLevel)Immortal.this.level();
 
             if (Immortal.this.random.nextBoolean()) {
-                Immortal.this.level.playSound(null, Immortal.this.eyeBlockPosition(), RCSoundEvents.IMMORTAL_ELECTROSHOCK.get(), SoundSource.HOSTILE, 1.0F, 1.0F);
                 for (int i = 0; i <= Immortal.this.random.nextInt(2); i++) {
                     BlockPos pos = Immortal.this.blockPosition().offset(-4 + Immortal.this.random.nextInt(9), 0, -4 + Immortal.this.random.nextInt(9));
-
-                    LightningBolt bolt = EntityType.LIGHTNING_BOLT.create(Immortal.this.level);
-                    if (bolt != null) {
-                        bolt.moveTo(Vec3.atBottomCenterOf(pos));
-                        level.addFreshEntity(bolt);
-                    }
+                    LightningBolt bolt = EntityType.LIGHTNING_BOLT.create(Immortal.this.level());
+                    bolt.moveTo(Vec3.atBottomCenterOf(pos));
+                    level.addFreshEntity(bolt);
                 }
             }
         }
 
         @Override
         public boolean canUse() {
-            return Immortal.this.getHealth() <= Immortal.this.getMaxHealth() * 0.8D && Immortal.this.hasPower() && Immortal.this.level.canSeeSky(Immortal.this.blockPosition()) && Immortal.this.random.nextBoolean();
+            return Immortal.this.getHealth() <= Immortal.this.getMaxHealth() / 100 * 80 && Immortal.this.hasPower() && Immortal.this.level().canSeeSky(Immortal.this.blockPosition()) && Immortal.this.random.nextBoolean();
         }
 
         @Override
@@ -258,7 +232,7 @@ public class Immortal extends SpellcasterZombie {
 
         @Override
         protected int getCastingInterval() {
-            return Immortal.this.getHealth() <= Immortal.this.getMaxHealth() * 0.4D ? 800 : 1600;
+            return Immortal.this.getHealth() <= Immortal.this.getMaxHealth() / 100 * 40 ? 800 : 1600;
         }
     }
 
@@ -295,17 +269,10 @@ public class Immortal extends SpellcasterZombie {
             z *= power / range;
             this.immortal.push(x, y, z);
             this.immortal.autoSpinAttackTicks = 30;
-
-            if (!this.immortal.level.isClientSide) {
-                this.immortal.setLivingEntityFlag(4, true);
-            }
-
-            if (this.immortal.isOnGround()) {
-                this.immortal.move(MoverType.SELF, new Vec3(0.0D, 1.1999999F, 0.0F));
-            }
-
-            this.immortal.level.playSound(null, this.immortal, SoundEvents.TRIDENT_RIPTIDE_3, SoundSource.HOSTILE, 1.0F, 1.0F);
-            this.immortal.level.playSound(null, this.immortal, SoundEvents.TRIDENT_RETURN, SoundSource.HOSTILE, 1.0F, 1.0F);
+            if (!this.immortal.level().isClientSide) this.immortal.setLivingEntityFlag(4, true);
+            if (this.immortal.onGround()) this.immortal.move(MoverType.SELF, new Vec3(0.0D, 1.1999999F, 0.0F));
+            this.immortal.level().playSound(null, this.immortal, SoundEvents.TRIDENT_RIPTIDE_3, SoundSource.PLAYERS, 1.0F, 1.0F);
+            this.immortal.level().playSound(null, this.immortal, SoundEvents.TRIDENT_RETURN, SoundSource.PLAYERS, 1.0F, 1.0F);
         }
 
         @Override

@@ -99,7 +99,7 @@ public class TreasureChest extends PathfinderMob {
 
     @Override
     public boolean hurt(DamageSource source, float amount) {
-        return source == DamageSource.OUT_OF_WORLD;
+        return source == level().damageSources().fellOutOfWorld();
     }
 
     @Override

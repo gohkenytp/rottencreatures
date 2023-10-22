@@ -6,7 +6,7 @@ import com.github.teamfusion.rottencreatures.client.model.LayerBuilder;
 import com.github.teamfusion.rottencreatures.client.renderer.entity.layers.HeldTntBarrelLayer;
 import com.github.teamfusion.rottencreatures.common.entities.DeadBeard;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.HumanoidMobRenderer;
 import net.minecraft.resources.ResourceLocation;
@@ -27,10 +27,10 @@ public class DeadBeardRenderer<T extends DeadBeard> extends HumanoidMobRenderer<
     @Override
     protected void setupRotations(T deadBeard, PoseStack matrices, float animationProgress, float bodyYaw, float tickDelta) {
         super.setupRotations(deadBeard, matrices, animationProgress, bodyYaw, tickDelta);
-        if (!((double)deadBeard.animationSpeed < 0.01D)) {
-            float timestamp = deadBeard.animationPosition - deadBeard.animationSpeed * (1.0F - tickDelta) + 6.0F;
+        if (!((double)deadBeard.walkAnimation.speed() < 0.01D)) {
+            float timestamp = deadBeard.walkAnimation.position() - deadBeard.walkAnimation.speed() * (1.0F - tickDelta) + 6.0F;
             float degreeModifier = (Math.abs(timestamp % 13.0F - 6.5F) - 3.25F) / 3.25F;
-            matrices.mulPose(Vector3f.ZP.rotationDegrees(6.5F * degreeModifier));
+            matrices.mulPose(Axis.ZP.rotationDegrees(6.5F * degreeModifier));
         }
     }
 }

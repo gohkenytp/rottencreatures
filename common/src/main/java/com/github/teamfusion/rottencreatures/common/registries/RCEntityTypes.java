@@ -26,7 +26,7 @@ import net.minecraft.world.entity.MobCategory;
 import java.util.function.Supplier;
 
 public class RCEntityTypes {
-    public static final CoreRegistry<EntityType<?>> ENTITIES = CoreRegistry.create(Registry.ENTITY_TYPE, RottenCreatures.MOD_ID);
+    public static final CoreRegistry<EntityType<?>> ENTITIES = CoreRegistry.create(ForgeRegistries.ENTITY_TYPES, RottenCreatures.MOD_ID);
 
     public static final Supplier<EntityType<Burned>> BURNED = create("burned", EntityType.Builder.of(Burned::new, MobCategory.MONSTER).fireImmune().sized(0.6F, 1.95F).clientTrackingRange(8));
     public static final Supplier<EntityType<Frostbitten>> FROSTBITTEN = create("frostbitten", EntityType.Builder.of(Frostbitten::new, MobCategory.MONSTER).sized(0.6F, 1.95F).clientTrackingRange(8));
